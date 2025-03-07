@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,29 +16,64 @@
       align-items: center;
       height: 100vh;
       text-align: center;
+      overflow: hidden;
     }
+
     .container {
       background-color: white;
       padding: 20px;
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      display: none;
+      /* 隐藏内容直到倒计时结束 */
     }
+
     .heading {
       font-size: 2em;
       font-weight: bold;
       margin-bottom: 20px;
     }
+
     .name {
-      font-size: 1.5em;
-      color: #4CAF50;
-      margin-top: 10px;
+      font-size: 4em;
+      color: #14b0be;
+    }
+
+    /* 遮盖层样式 */
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(163, 236, 141, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      font-size: 2em;
+      z-index: 9999;
+      font-family: "Arial", sans-serif;
+    }
+
+    #countdown {
+      color: green;
+      /* 倒计时颜色为绿色 */
     }
   </style>
 </head>
+
 <body>
+  <!-- 遮盖层 -->
+  <div id="overlay" class="overlay">
+    <div id="countdown">
+      今天谁做饭？
+    </div>
+  </div>
+
   <div class="container">
-    <div class="heading">今天的值班人员是：</div>
     <div id="person" class="name"></div>
+    <div class="heading">今天你就是幸运儿！！！</div>
   </div>
 
   <script>
@@ -64,7 +100,7 @@
         return assignedPerson;
       } else {
         let randomIndex;
-        
+
         // 随机选择一个未被使用过的人员
         do {
           randomIndex = Math.floor(Math.random() * (people.length - 1)) + 1; // 排除第一个人
@@ -81,43 +117,60 @@
         return assignedPerson;
       }
     }
-
+    // 开始定时刷新
+    refreshAtTenOClock();
+    // 开始倒计时并显示页面
+    showPageAfterDelay();
     // 刷新页面显示今天的值班人员
     function refreshAtTenOClock() {
-  const now = new Date();
-  let nextRefreshTime = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate(),
-    20, 0, 0  // 设置为每天的10点
-  );
+      const now = new Date();
+      let nextRefreshTime = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        20, 0, 0  // 设置为每天的10点
+      );
 
-  // 如果当前时间已经超过今天的10点，设置为明天的10点
-  if (now >= nextRefreshTime) {
-    nextRefreshTime.setDate(nextRefreshTime.getDate() + 1);
-  }
+      // 如果当前时间已经超过今天的10点，设置为明天的10点
+      if (now >= nextRefreshTime) {
+        nextRefreshTime.setDate(nextRefreshTime.getDate() + 1);
+      }
 
-  const timeToNextRefresh = nextRefreshTime.getTime() - now.getTime();
+      const timeToNextRefresh = nextRefreshTime.getTime() - now.getTime();
 
-  setTimeout(() => {
-    // 清除之前的值班人员记录
-    localStorage.removeItem('assignedPerson');
-    
-    // 每天 10 点刷新值班人员
-    document.getElementById('person').textContent = getPersonForToday();
-    refreshAtTenOClock();  // 再次设置下次10点刷新
-  }, timeToNextRefresh);
-  console.log('timeToNextRefresh',timeToNextRefresh);
-  
-}
+      setTimeout(() => {
+        // 清除之前的值班人员记录
+        localStorage.removeItem('assignedPerson');
 
+        // 每天 10 点刷新值班人员
+        document.getElementById('person').textContent = getPersonForToday();
+        refreshAtTenOClock();  // 再次设置下次10点刷新
+      }, timeToNextRefresh);
+    }
 
+    // 显示倒计时并在倒计时结束后显示页面
+    function showPageAfterDelay() {
+      const countdownTexts = ["王东林", "当然不是啦！", "他/是谁呢！", ""]; // 三个不同的文本
+      let countdownIndex = 0;
+      const countdownElement = document.getElementById('countdown');
+
+      const interval = setInterval(() => {
+        countdownElement.innerHTML = countdownTexts[countdownIndex]; // 每秒显示不同的文本
+        countdownIndex++;
+
+        if (countdownIndex >= countdownTexts.length) {
+          clearInterval(interval);
+          document.getElementById('overlay').style.display = 'none'; // 隐藏遮盖层
+          document.querySelector('.container').style.display = 'block'; // 显示内容
+        }
+      }, 1000); // 每秒更新一次
+    }
 
     // 初始化页面，显示当天值班人员
     document.getElementById('person').textContent = getPersonForToday();
 
-    // 开始定时刷新
-    refreshAtTenOClock();
+
   </script>
 </body>
+
 </html>
