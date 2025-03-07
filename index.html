@@ -29,7 +29,7 @@
     }
 
     .heading {
-      font-size: 1.5em;
+      font-size: 20px;
       font-weight: bold;
     }
 
@@ -50,9 +50,7 @@
       justify-content: center;
       align-items: center;
       color: white;
-      font-size: 2em;
       z-index: 9999;
-      font-family: "Arial", sans-serif;
     }
 
     #countdown {
@@ -84,6 +82,7 @@
     function getPersonForToday() {
       const now = new Date();
       const day = now.getDay(); // 获取今天是星期几 (0: 周日, 1: 周一, ..., 6: 周六)
+      
       const randomIndex = (day * 12345) % people.length; // 基于日期生成一致的随机值
       return people[randomIndex];
       // 检查 localStorage 中是否已经有值班人员
