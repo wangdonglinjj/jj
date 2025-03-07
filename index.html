@@ -25,11 +25,10 @@
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       display: none;
-      /* 隐藏内容直到倒计时结束 */
     }
 
     .heading {
-      font-size: 24px;
+      font-size: 30px;
       font-weight: bold;
     }
 
@@ -38,7 +37,6 @@
       color: #14b0be;
     }
 
-    /* 遮盖层样式 */
     .overlay {
       position: fixed;
       top: 0;
@@ -50,19 +48,18 @@
       justify-content: center;
       align-items: center;
       color: white;
-      z-index: 9999;
       font-size: 2em;
+      z-index: 9999;
+      font-family: "Arial", sans-serif;
     }
 
     #countdown {
       color: green;
-      /* 倒计时颜色为绿色 */
     }
   </style>
 </head>
 
 <body>
-  <!-- 遮盖层 -->
   <div id="overlay" class="overlay">
     <div id="countdown">
       今天谁做饭？
@@ -73,79 +70,55 @@
     <div id="person" class="name"></div>
     <div class="heading">今天你就是幸运儿！！！</div>
   </div>
+
   <script>
-    // 定义员工和星期数组
     const people = ['王小慧', '王心燕', '王月燕', '王东林', '王太辉'];
-let usedIndexes = [];  // 用来记录已经选择过的人员索引
 
-// 根据星期几进行值班人员分配
-function getPersonForToday() {
-  const now = new Date();
-  const day = now.getDay(); // 获取今天是星期几 (0: 周日, 1: 周一, ..., 6: 周六)
-  const seed = `${day}-${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`; // 基于日期生成种子
-  
-  // 使用该种子值来生成一个确定性的随机值
-  const randomIndex = getDeterministicRandom(seed, people.length);
-
-  let assignedPerson = people[randomIndex];
-
-  // 检查 localStorage 中是否已经有值班人员
-  let storedAssignedPerson = localStorage.getItem('assignedPerson');
-  if (storedAssignedPerson && storedAssignedPerson === assignedPerson) {
-    return assignedPerson;
-  }
-
-  // 如果是周日，固定选择第一个人
-  if (day === 0) {
-    usedIndexes = []; // 周日重新开始
-    assignedPerson = people[0];
-    localStorage.setItem('assignedPerson', assignedPerson);  // 存储到 localStorage
-    return assignedPerson;
-  } else {
-    // 随机选择一个未被使用过的人员
-    let randomIndex;
-
-    do {
-      randomIndex = Math.floor(Math.random() * (people.length - 1)) + 1; // 排除第一个人
-    } while (usedIndexes.includes(randomIndex));
-
-    usedIndexes.push(randomIndex); // 记录已经选择过的索引
-
-    if (usedIndexes.length === people.length - 1) {
-      usedIndexes = []; // 如果所有人员都已选择过，重置已选择列表
+    // 使用日期作为种子生成一致的随机序列
+    function getSeededRandom(seed) {
+      return function() {
+        seed = (seed * 9301 + 49297) % 233280;
+        return seed / 233280;
+      };
     }
 
-    assignedPerson = people[randomIndex];
-    localStorage.setItem('assignedPerson', assignedPerson);  // 存储到 localStorage
-    return assignedPerson;
-  }
-}
-
-// 生成确定性随机数
-function getDeterministicRandom(seed, max) {
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++) {
-    hash = (hash << 5) - hash + seed.charCodeAt(i);
-    hash |= 0; // 强制转换为32位整数
-  }
-  return Math.abs(hash) % max;
-
+    // 根据当前日期（年月日）生成种子
+    function generateSeedFromDate() {
+      const now = new Date();
+      return now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
     }
-    // 开始定时刷新
+
+    // 获取今天的值班人员
+    function getPersonForToday() {
+      const seed = generateSeedFromDate();
+      const random = getSeededRandom(seed);
+
+      // 固定选择周日人员为第一位
+      const day = new Date().getDay();
+      if (day === 0) {
+        return people[0];  // 周日固定为第一个人
+      } else {
+        // 排除第一个人，只选择其他人
+        const availablePeople = people.slice(1);
+        const index = Math.floor(random() * availablePeople.length);
+        return availablePeople[index];
+      }
+    }
+
+    // 定时刷新页面
     refreshAtTenOClock();
-    // 开始倒计时并显示页面
+    // 显示倒计时并在倒计时结束后显示页面
     showPageAfterDelay();
-    // 刷新页面显示今天的值班人员
+
     function refreshAtTenOClock() {
       const now = new Date();
       let nextRefreshTime = new Date(
         now.getFullYear(),
         now.getMonth(),
         now.getDate(),
-        20, 0, 0  // 设置为每天的10点
+        20, 0, 0  // 每天的20点
       );
 
-      // 如果当前时间已经超过今天的10点，设置为明天的10点
       if (now >= nextRefreshTime) {
         nextRefreshTime.setDate(nextRefreshTime.getDate() + 1);
       }
@@ -153,36 +126,31 @@ function getDeterministicRandom(seed, max) {
       const timeToNextRefresh = nextRefreshTime.getTime() - now.getTime();
 
       setTimeout(() => {
-        // 清除之前的值班人员记录
         localStorage.removeItem('assignedPerson');
-
-        // 每天 10 点刷新值班人员
         document.getElementById('person').textContent = getPersonForToday();
-        refreshAtTenOClock();  // 再次设置下次10点刷新
+        refreshAtTenOClock();  // 再次设置下次刷新
       }, timeToNextRefresh);
     }
 
-    // 显示倒计时并在倒计时结束后显示页面
     function showPageAfterDelay() {
-      const countdownTexts = ["王东林", "当然不是啦！", "他/是谁呢！", ""]; // 三个不同的文本
+      const countdownTexts = ["王东林", "当然不是啦！", "他/是谁呢！", ""];
       let countdownIndex = 0;
       const countdownElement = document.getElementById('countdown');
 
       const interval = setInterval(() => {
-        countdownElement.innerHTML = countdownTexts[countdownIndex]; // 每秒显示不同的文本
+        countdownElement.innerHTML = countdownTexts[countdownIndex];
         countdownIndex++;
 
         if (countdownIndex >= countdownTexts.length) {
           clearInterval(interval);
-          document.getElementById('overlay').style.display = 'none'; // 隐藏遮盖层
-          document.querySelector('.container').style.display = 'block'; // 显示内容
+          document.getElementById('overlay').style.display = 'none';
+          document.querySelector('.container').style.display = 'block';
         }
-      }, 1000); // 每秒更新一次
+      }, 1000);
     }
 
     // 初始化页面，显示当天值班人员
     document.getElementById('person').textContent = getPersonForToday();
-
 
   </script>
 </body>
