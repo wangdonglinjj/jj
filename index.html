@@ -29,7 +29,7 @@
     }
 
     .heading {
-      font-size: 20px;
+      font-size: 24px;
       font-weight: bold;
     }
 
@@ -75,7 +75,7 @@
 
   <script>
     // 定义员工和星期数组
-    const people = ['王小慧', '王心燕', '王月燕', '王东林', '王太辉'];
+    const people = ['王心燕', '王月燕', '王东林', '王太辉'];
     let usedIndexes = [];  // 用来记录已经选择过的人员索引
 
     // 根据星期几进行值班人员分配
@@ -92,7 +92,7 @@
       }
 
       // 如果是周日，固定选择第一个人
-      if (day === 0) {
+      if (day === 5) {
         usedIndexes = []; // 周日重新开始
         assignedPerson = people[0];
         localStorage.setItem('assignedPerson', assignedPerson);  // 存储到 localStorage
