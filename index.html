@@ -29,7 +29,7 @@
     }
 
     .heading {
-      font-size: 1.5em;
+      font-size: 1em;
       font-weight: bold;
     }
 
@@ -84,7 +84,8 @@
     function getPersonForToday() {
       const now = new Date();
       const day = now.getDay(); // 获取今天是星期几 (0: 周日, 1: 周一, ..., 6: 周六)
-
+      const randomIndex = (day * 12345) % people.length; // 基于日期生成一致的随机值
+      return people[randomIndex];
       // 检查 localStorage 中是否已经有值班人员
       let assignedPerson = localStorage.getItem('assignedPerson');
       if (assignedPerson) {
@@ -127,7 +128,7 @@
         now.getFullYear(),
         now.getMonth(),
         now.getDate(),
-        20, 0, 0  // 设置为每天的10点
+        20, 0, 0  // 设置为每天的20点
       );
 
       // 如果当前时间已经超过今天的10点，设置为明天的10点
